@@ -1,0 +1,24 @@
+<table class="table table-striped table-bordered table-hover">
+    <thead class="table-info">
+        <tr>
+            <th scope="col">Timestamp</th>
+            <th scope="col">User</th>
+            <th scope="col">Notes</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in page_obj.object_list %}
+        <tr>
+            <th scope="row">{{ log.timestamp }}</td>
+            <td>{{ log.user.username }}</td>
+            <td>{{ log.notes }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3" class="text-center">No logs recorded</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% include 'pagination.html' %}
