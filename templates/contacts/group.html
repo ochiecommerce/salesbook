@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Company{% endblock %}
+
+{% block content %}
+<h3>Invites</h3>
+<ul>
+    {% for invite in invites %}
+    <li>invite.company <a href="{% url 'accept_invite' invite.pk %}">accept</a></li>
+    {% empty %}
+    <p>No invites</p>
+    {% endfor %}
+</ul>
+{% if user.company %}
+<h3>{{ user.company.name }} Members</h3>
+<form class="d-flex" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-outline-primary" type="submit">Add member</button>
+</form>
+<ul>
+    {% for member in members %}
+    <li>{{member.username}} <a href="#">Feedback</a></li>
+    {% empty %}
+    <p>No members</p>
+    {% endfor %}
+</ul>
+{% else %}
+<h3>Create group</h3>
+<form class="d-flex" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-outline-primary" type="submit">Create group</button>
+</form>
+{% endif %}
+{% endblock %}

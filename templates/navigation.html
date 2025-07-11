@@ -1,0 +1,15 @@
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link {{contact_list_active}}" aria-current="page" href="{% url 'contact_list' %}">Contacts</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#">Leeds</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{group_active}}" href="{% url 'group' %}">Company</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+    </li>
+</ul>

@@ -26,8 +26,7 @@ SECRET_KEY = 'django-insecure-uyz6g&d==rp6g=6+mr$*vihmaudquqv51+2a4hfb79u4am&224
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'localhost',         # Local service
-    '192.168.43.166',    # LAN service
+    '*',     # LAN service
 ]
 
 
@@ -35,6 +34,12 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'contacts',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',  # Optional (for registration)
+    'allauth',
+    'allauth.account',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'crm.urls'
@@ -126,3 +132,26 @@ STATIC_ROOT = BASE_DIR/'static'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Django REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
+# Token authentication settings
+REST_USE_JWT = True  # Enable JWT authentication
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
+# Site ID for Django AllAuth (Required for email verification)
+SITE_ID = 1
+
+# Email settings (for email verification and password reset)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Use console for testing

@@ -1,15 +1,13 @@
 {% extends 'base.html' %}
+{% block title %}{{ contact.name }}{% endblock %}
 {% block content %}
-<a href="/">Contact list</a>
+<a href="{% url 'contact_list' %}">Contact list</a>
 <h2>{{ contact.name }} <strong><a class="btn btn-primary" href="tel:{{contact.phone}}">call</a></h2>
   <p><strong>Status:</strong> {{ contact.get_status_display }}</p>
 <p><strong>Employer:</strong> {{ contact.employer_name }}</p>
 <p><strong>Employement number:</strong> {{ contact.employment_number }}</p>
 <p><strong>Id number:</strong> {{ contact.id_number }} </p>
 
-<h3>Interaction Logs</h3>
-<a class="btn btn-primary" href="/{{ contact.id }}/add_interaction/">Add Interaction</a>
-<ul>
 {% include 'contacts/interactions_list.html' %}
 
 {% endblock %}

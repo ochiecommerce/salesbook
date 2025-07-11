@@ -1,23 +1,22 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Contact List{% endblock %}
+
 {% block content %}
+
 <div class="container mt-5">
     <h2 class="mb-4">Contact List</h2>
-<a class="btn btn-primary" href="{% url 'add_contact' %}">Add New Contact</a>
-<form class="d-flex" method="get">
-  <input 
-  class="form-control me-2" 
-  type="search" 
-  name="q" 
-  placeholder="Search..." 
-  value="{{ query }}">
-  <button class="btn btn-outline-primary" type="submit">Search</button>
-</form>
+    <a class="btn btn-primary" href="{% url 'add_contact' %}">Add New Contact</a>
+    <form class="d-flex" method="get">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search contacts" value="{{ query }}">
+        <button class="btn btn-outline-primary" type="submit">Search</button>
+    </form>
     <table class="table table-striped table-bordered table-hover">
         <thead class="table-dark">
             <tr>
                 <th scope="col">Name</th>
+                <th scope="col">Phone</th>
                 <th scope="col">ID Number</th>
                 <th scope="col">Employment Number</th>
                 <th scope="col">Employer Name</th>
@@ -29,11 +28,12 @@
             {% for contact in page_obj.object_list %}
             <tr>
                 <td>{{ contact.name }}</td>
+                <td>{{ contact.phone}}</td>
                 <td>{{ contact.id_number }}</td>
                 <td>{{ contact.employment_number }}</td>
                 <td>{{ contact.employer_name }}</td>
                 <td>{{ contact.ability }}</td>
-                <td>
+                <td>{{ contact.latest_log }}
                     <a href="{% url 'contact_detail' contact.pk %}" class="btn btn-sm btn-primary">View</a>
                 </td>
             </tr>
