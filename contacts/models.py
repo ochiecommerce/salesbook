@@ -2,72 +2,70 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Group(models.Model):
-    name = models.CharField(max_length=64)
-    admin = models.ForeignKey(User,on_delete=models.CASCADE)
+class Phonebook(models.Model):
+    creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name='my_phonebooks',null=True)
+    name = models.CharField(max_length=255)
+
+class ReadPermission(models.Model):
+    user = models.ForeignKey(User,related_name='read_permissions',on_delete=models.CASCADE)
+    phonebook = models.ForeignKey(Phonebook,related_name='read_permissions',on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('user','phonebook'),)
+
+class WritePermission(models.Model):
+    user = models.ForeignKey(User,related_name='write_permissions',on_delete=models.CASCADE)
+    phonebook = models.ForeignKey(Phonebook,related_name='write_permissions',on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('user','phonebook'),)
+
+class AlterPermission(models.Model):
+    user = models.ForeignKey(User,related_name='alter_permissions',on_delete=models.CASCADE)
+    phonebook = models.ForeignKey(Phonebook,related_name='alter_permissions',on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('user','phonebook'),)
 
 
 class Contact(models.Model):
-    STATUS_CHOICES = [
-        ("new", "New"),
-        ("contacted", "Contacted"),
-        ("converted", "Converted"),
-        ("not_interested", "Not Interested"),
-    ]
-
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=16, unique=True)
-    id_number = models.IntegerField(null=True)
-    employment_number = models.IntegerField(null=True)
-    employer_name = models.CharField(max_length=100, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="new")
+    phonebook = models.ForeignKey(Phonebook,on_delete=models.CASCADE,related_name='contacts',null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    ability = models.FloatField(default=0.0)
-    duration_of_contract = models.IntegerField(default=120)
 
     def __str__(self):
         return f"{self.name} ({self.phone})"
 
     @property
     def latest_log(self):
-        if (size := len(self.interactions.all())) > 0:  # type: ignore
-            return self.interactions.all()[size - 1].feedback_title  # type: ignore
+        if (size := len(self.notes.all())) > 0:  # type: ignore
+            return self.notes.all()[size - 1].feedback_title  # type: ignore
         return ""
+    
+class Column(models.Model):
+    name = models.CharField(max_length=255)
+    phonebook = models.ForeignKey(Phonebook, related_name='columns', on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (('name','phonebook'))
 
-class InteractionLog(models.Model):
-    feedback_title_choices = [
-        ("not_available", "Not Available"),
-        ("not_picking", "Not Picking"),
-        ("hanged_up", "Hanged Up"),
-        ("do_not_call", "Do Not Call"),
-        ("not_interested", "Not Interested"),
-        ("retired", "Retired"),
-        ("call_later", "Call Later"),
-        ("prospective", "Prospective"),
-    ]
+class Attribute(models.Model):
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE,related_name='attributes')
+    column = models.ForeignKey(Column,on_delete=models.CASCADE)
+    value = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = (('contact','column'))
+
+class Note(models.Model):
     contact = models.ForeignKey(
         Contact, on_delete=models.CASCADE, related_name="interactions"
     )
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # type: ignore
-    feedback_title = models.CharField(
-        max_length=64, choices=feedback_title_choices, default="not_available"
-    )
-    notes = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')  # type: ignore
+    note = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Interaction with {self.contact.name} by {self.user.username}"  # type: ignore
 
-
-class Invite(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="invites"
-    )
-    company = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="invites")
-
-class Membership(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="memberships"
-    )
-    company = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="memberships")

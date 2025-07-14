@@ -1,32 +1,70 @@
 from rest_framework import serializers
-from .models import Contact, InteractionLog, Invite, Membership
+from django.contrib.auth import get_user_model
+from .models import (
+    Contact,
+    Column,
+    ReadPermission,
+    WritePermission,
+    AlterPermission,
+    Note,
+    Phonebook,
+    Attribute,
+)
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields =['id','username']
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
+        fields = ["name", "phone", "phonebook", "pk"]
+        read_only_fields = ["created_at", "updated_at"]
+
+
+
+class NoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Note
         fields = [
-            "name",
-            "id_number",
-            "employment_number",
-            "employer_name",
-            "phone",
-            "status",
+            "contact",
+            "user",
         ]
-        read_only_fields = ['created_at', 'updated_at']
 
 
-class InteractionSerializer(serializers.ModelSerializer):
+class PhonebookSerializer(serializers.ModelSerializer):
+    creator = UserSerializer()
     class Meta:
-        model = InteractionLog
-        fields = ['contact','user',]
+        model = Phonebook
+        fields = ["name", "creator", "pk"]
 
-class InviteSerializer(serializers.ModelSerializer):
+
+class ReadPermissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Invite
-        fields = ['user','group']
+        model = ReadPermission
+        fields = ["user", "phonebook"]
 
-class MembershipSerializer(serializers.ModelSerializer):
+
+class WritePermissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Membership
-        fields = ['user','group']
+        model = WritePermission
+        fields = ["user", "phonebook"]
 
+
+class AlterPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlterPermission
+        fields = ["user", "phonebook"]
+
+
+class AttributeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attribute
+        fields = ["contact", "column", "value"]
+
+
+class ColumnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Column
+        fields =['name','phonebook']

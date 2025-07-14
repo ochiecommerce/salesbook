@@ -1,6 +1,7 @@
 
 from django.contrib import admin
-from .models import Contact, InteractionLog
+from .models import Contact, Note, Phonebook
 
 admin.site.register(Contact)
-admin.site.register(InteractionLog)
+admin.site.register(Note)
+admin.site.register(Phonebook)
