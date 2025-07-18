@@ -2,21 +2,19 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .api_view import (
     ContactsViewSet,
-    CustomContactView,
     PhonebookViewSet,
     ColumnViewSet,
     AttributeViewSet,
+    NoteViewSet
 )
 
 router = DefaultRouter()
 router.register(r"columns", ColumnViewSet, basename="column")
 router.register(r"attributes", AttributeViewSet, basename="attribute")
-router.register(r'phonebooks',PhonebookViewSet,basename='phonebook')
+router.register(r"phonebooks", PhonebookViewSet, basename="phonebook")
+router.register(r'notes',NoteViewSet,basename='note')
 
-VIEWSET_ACTIONS={
-    "get":"list",
-    "post":"create"
-}
+VIEWSET_ACTIONS = {"get": "list", "post": "create"}
 
 urlpatterns = [
     path("", include(router.urls)),
@@ -26,5 +24,10 @@ urlpatterns = [
         "phonebooks/<int:phonebook_id>/contacts/",
         ContactsViewSet.as_view(VIEWSET_ACTIONS),
         name="custom_contacts",
+    ),
+    path(
+        "phonebooks/<int:phonebook_id>/contacts/<int:pk>",
+        ContactsViewSet.as_view({"get": "retrieve"}),
+        name="contact_detils",
     ),
 ]

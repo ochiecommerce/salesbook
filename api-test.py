@@ -35,7 +35,6 @@ class Client:
 
     def create_phonebook(self,name,**attrs):
         attrs['name']=name
-        attrs['creator']=self.username
         response = requests.post(f'{BASE_URL}/phonebooks/',headers=self.headers,data=attrs)
         print(self.username,'created phonebook',response.json())
 

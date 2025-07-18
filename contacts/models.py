@@ -4,7 +4,12 @@ from django.contrib.auth.models import User
 
 class Phonebook(models.Model):
     creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name='my_phonebooks',null=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=63)
+    description = models.CharField(max_length=255)
+
+    @property
+    def contact_count(self):
+        return len(self.contacts.all())
 
 class ReadPermission(models.Model):
     user = models.ForeignKey(User,related_name='read_permissions',on_delete=models.CASCADE)
@@ -43,6 +48,17 @@ class Contact(models.Model):
             return self.notes.all()[size - 1].feedback_title  # type: ignore
         return ""
     
+class Reminder(models.Model):
+    title = models.CharField(max_length=255)
+    due = models.DateTimeField()
+    creator = models.ForeignKey(User,related_name='reminders',on_delete=models.CASCADE)
+
+class Tag(models.Model):
+    tagger_app = models.CharField(max_length=63)
+    tagged_app = models.CharField(max_length=63)
+    tagger_id = models.IntegerField()
+    tagged_id= models.IntegerField()
+    
 class Column(models.Model):
     name = models.CharField(max_length=255)
     phonebook = models.ForeignKey(Phonebook, related_name='columns', on_delete=models.CASCADE)
@@ -60,7 +76,7 @@ class Attribute(models.Model):
 
 class Note(models.Model):
     contact = models.ForeignKey(
-        Contact, on_delete=models.CASCADE, related_name="interactions"
+        Contact, on_delete=models.CASCADE, related_name="notes"
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')  # type: ignore
     note = models.CharField(max_length=255)

@@ -1,7 +1,11 @@
 from rest_framework import viewsets, permissions,views
 from rest_framework.response import Response
+from django.http.request import HttpRequest
+
+from contacts.tagging import TagListener
 from .serializers import *
 
+note_tag_listener = TagListener('notes')
 
 class PhonebookViewSet(viewsets.ModelViewSet):
     serializer_class = PhonebookSerializer
@@ -38,7 +42,7 @@ class ContactsViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request,phonebook_id, *args, **kwargs):
-        contact_serializer = ContactSerializer(data=request.POST)
+        contact_serializer = ContactSerializer(data=request.data)
         phonebook = Phonebook.objects.get(pk=phonebook_id)
         if contact_serializer.is_valid(raise_exception=True):
             contact=contact_serializer.save(phonebook=phonebook)
@@ -65,9 +69,12 @@ class ContactsViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request,pk, *args, **kwargs):
         contact = Contact.objects.get(pk=pk)
+        contact_serializer = ContactSerializer(contact)
         attributes = Attribute.objects.filter(column__phonebook=contact.phonebook)
-        attribute_serializer = AttributeSerializer(attributes)
-        return Response(attribute_serializer.data)
+        for attr in attributes:
+            contact_serializer.data[attr.column.name]=attr.value # type: ignore
+        
+        return Response(contact_serializer.data)
 
 class ColumnViewSet(viewsets.ModelViewSet):
     queryset=Column.objects.all()
@@ -76,10 +83,27 @@ class ColumnViewSet(viewsets.ModelViewSet):
 
 
 class NoteViewSet(viewsets.ModelViewSet):
-    queryset=Note
+    queryset=Note.objects.all()
     serializer_class = NoteSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def create(self, request:HttpRequest, *args, **kwargs):
+        note = NoteSerializer(data=request.data)
+
+        if note.is_valid(raise_exception=True):
+            note=note.save(creator=request.user)
+            note_tag_listener.check(note.note,note.pk)
+            return Response(NoteSerializer(note).data)
+
+class ReminderViewSet(viewsets.ModelViewSet):
+    queryset = Reminder.objects.all()
+    serializer_class = ReminderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        reminder_serializer = ReminderSerializer(data=request.data)
+        reminder = reminder_serializer.save(creator = request.user)
+        return Response(ReminderSerializer(reminder).data)
 
 class ReadPermissionViewSet(viewsets.ModelViewSet):
     queryset=ReadPermission
@@ -97,9 +121,4 @@ class AttributeViewSet(viewsets.ModelViewSet):
     queryset=Attribute
     serializer_class = AttributeSerializer
     permission_classes = [permissions.IsAuthenticated]
-
-class CustomContactView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
-
 
