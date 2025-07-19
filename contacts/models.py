@@ -5,15 +5,16 @@ from django.contrib.auth.models import User
 class Phonebook(models.Model):
     creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name='my_phonebooks',null=True)
     name = models.CharField(max_length=63)
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, null=True)
 
     @property
     def contact_count(self):
         return len(self.contacts.all())
+    
 
 class ReadPermission(models.Model):
     user = models.ForeignKey(User,related_name='read_permissions',on_delete=models.CASCADE)
-    phonebook = models.ForeignKey(Phonebook,related_name='read_permissions',on_delete=models.CASCADE)
+    phonebook = models.ForeignKey(Phonebook,related_name='read_permissions',on_delete=models.CASCADE, null=True)
 
     class Meta:
         unique_together = (('user','phonebook'),)
@@ -39,6 +40,10 @@ class Contact(models.Model):
     phonebook = models.ForeignKey(Phonebook,on_delete=models.CASCADE,related_name='contacts',null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
+    @property
+    def tags(self):
+        return Tag.objects.filter(tagged_app='contacts',tagged_id=self.phone)
+
     def __str__(self):
         return f"{self.name} ({self.phone})"
 
@@ -56,8 +61,8 @@ class Reminder(models.Model):
 class Tag(models.Model):
     tagger_app = models.CharField(max_length=63)
     tagged_app = models.CharField(max_length=63)
-    tagger_id = models.IntegerField()
-    tagged_id= models.IntegerField()
+    tagger_id = models.CharField(max_length=63)
+    tagged_id= models.CharField(max_length=63)
     
 class Column(models.Model):
     name = models.CharField(max_length=255)
@@ -76,10 +81,11 @@ class Attribute(models.Model):
 
 class Note(models.Model):
     contact = models.ForeignKey(
-        Contact, on_delete=models.CASCADE, related_name="notes"
+        Contact, on_delete=models.CASCADE, related_name="notes",null=True
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')  # type: ignore
-    note = models.CharField(max_length=255)
+    note = models.TextField()
+    title = models.CharField(max_length=96)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

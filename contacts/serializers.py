@@ -4,6 +4,7 @@ from .models import (
     Contact,
     Column,
     ReadPermission,
+    Tag,
     WritePermission,
     AlterPermission,
     Note,
@@ -24,15 +25,18 @@ class ReminderSerializer(serializers.ModelSerializer):
         model = Reminder
         fields = ["due", "title"]
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['tagger_app','tagger_id','tagged_app','tagged_id']
+
 
 class ContactSerializer(serializers.ModelSerializer):
-    notes = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Note.objects.all(), required=False
-    )
+    tags = TagSerializer(many=True,required=False)
 
     class Meta:
         model = Contact
-        fields = ["name", "phone", "phonebook", "pk", "notes"]
+        fields = ["name", "phone", "phonebook", "pk", "tags"]
         read_only_fields = ["created_at", "updated_at"]
 
 
@@ -66,6 +70,9 @@ class PhonebookSerializer(serializers.ModelSerializer):
 
 
 class ReadPermissionSerializer(serializers.ModelSerializer):
+    phonebook = serializers.PrimaryKeyRelatedField(
+        queryset=Phonebook.objects.all(), required=False
+    )
     class Meta:
         model = ReadPermission
         fields = ["user", "phonebook"]
