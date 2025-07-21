@@ -1,3 +1,4 @@
 django
 djangorestframework
 dj-rest-auth
+gunicorn
