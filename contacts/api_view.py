@@ -1,5 +1,4 @@
 # api_view.py
-from flask import request
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from django.http.request import HttpRequest
