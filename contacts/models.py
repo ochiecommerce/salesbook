@@ -1,3 +1,4 @@
+# models.py
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -9,15 +10,14 @@ class Phonebook(models.Model):
 
     @property
     def contact_count(self):
-        return len(self.contacts.all())
+        return self.contacts.count()
     
 
 class ReadPermission(models.Model):
     user = models.ForeignKey(User,related_name='read_permissions',on_delete=models.CASCADE)
     phonebook = models.ForeignKey(Phonebook,related_name='read_permissions',on_delete=models.CASCADE, null=True)
 
-    class Meta:
-        unique_together = (('user','phonebook'),)
+    
 
 class WritePermission(models.Model):
     user = models.ForeignKey(User,related_name='write_permissions',on_delete=models.CASCADE)
@@ -81,9 +81,9 @@ class Attribute(models.Model):
 
 class Note(models.Model):
     contact = models.ForeignKey(
-        Contact, on_delete=models.CASCADE, related_name="notes",null=True
+        Contact, on_delete=models.CASCADE, related_name="notes"
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')  # type: ignore
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes',null=True)  # type: ignore
     note = models.TextField()
     title = models.CharField(max_length=96)
     timestamp = models.DateTimeField(auto_now_add=True)

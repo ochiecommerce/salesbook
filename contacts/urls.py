@@ -16,7 +16,7 @@ router = DefaultRouter()
 router.register(r"columns", ColumnViewSet, basename="column")
 router.register(r"attributes", AttributeViewSet, basename="attribute")
 router.register(r"phonebooks", PhonebookViewSet, basename="phonebook")
-router.register(r"notes", NoteViewSet, basename="note")
+# router.register(r"notes", NoteViewSet, basename="note")
 
 VIEWSET_ACTIONS = {"get": "list", "post": "create"}
 
@@ -37,19 +37,20 @@ urlpatterns = [
     ),
     path(
         "phonebooks/<int:phonebook_id>/read_permissions/",
-        ReadPermissionViewSet.as_view({"post": "create"}),
+        ReadPermissionViewSet.as_view({"post": "create", "get": "list"}),
         name="read_permission",
     ),
     path(
         "phonebooks/<int:phonebook_id>/write_permissions/",
-        WritePermissionViewSet.as_view({"post": "create"}),
+        WritePermissionViewSet.as_view({"post": "create", "get": "list"}),
         name="write_permission",
     ),
     path(
         "phonebooks/<int:phonebook_id>/alter_permissions/",
-        AlterPermissionViewSet.as_view({"post": "create"}),
+        AlterPermissionViewSet.as_view({"post": "create", "get": "list"}),
         name="alter_permission",
     ),
+    path('notes/',NoteViewSet.as_view(),name='create_note'),
     path("user/check/", UsernameCheckView.as_view(), name="username_check"),
     path("user/search/", UserSearchView.as_view(), name="user_search"),
 ]

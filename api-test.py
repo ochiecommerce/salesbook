@@ -1,5 +1,8 @@
-from urllib import response
 import requests
+
+def prrint(*args):
+    print(*args)
+    return args[0]
 
 TEST_USERNAME1 = "ostiness"
 TEST_PASS1 = "Iness567"
@@ -27,7 +30,9 @@ def login(username, passwd):
         f"{BASE_URL}/auth/login", data={"username": username, "password": passwd}
     )
     if res.ok:
-        return res.json()["key"]
+        ret=res.json()
+        print(ret)
+        return ret['key']
     print("login error:", res.content)
 
 
@@ -41,7 +46,7 @@ class Client:
     def user(self):
         response = requests.get(f"{BASE_URL}/auth/user/", headers=self.headers)
         if response.ok:
-            return response.json()
+            return prrint(response.json())
         print(self.username, "getting user info", response.json())
 
     def create_phonebook(self, name, **attrs):
@@ -77,6 +82,52 @@ class Client:
             return response.json()
         print(self.username, "adding read permission", response.json())
 
+    def add_write_permission(self, phonebook,user):
+        response = requests.post(
+            f"{BASE_URL}/phonebooks/{phonebook}/write_permissions/",
+            headers=self.headers,
+            data={"user": user},
+        )
+        if response.ok:
+            return response.json()
+        print(self.username, "adding write permission", response.json())
+
+    def add_alter_permission(self, phonebook,user):
+        response = requests.post(
+            f"{BASE_URL}/phonebooks/{phonebook}/alter_permissions/",
+            headers=self.headers,
+            data={"user": user},
+        )
+        if response.ok:
+            return response.json()
+        print(self.username, "adding alter permission", response.json())
+    
+    def list_permissions(self, phonebook):
+        response = requests.get(
+            f"{BASE_URL}/phonebooks/{phonebook}/read_permissions/",
+            headers=self.headers,
+        )
+        if response.ok:
+            return response.json()
+        print(self.username, "listing permissions", response.json())
+
+    def list_write_permissions(self, phonebook):
+        response = requests.get(
+            f"{BASE_URL}/phonebooks/{phonebook}/write_permissions/",
+            headers=self.headers,
+        )
+        if response.ok:
+            return response.json()
+        print(self.username, "listing write permissions", response.json())
+
+    def list_alter_permissions(self, phonebook):
+        response = requests.get(
+            f"{BASE_URL}/phonebooks/{phonebook}/alter_permissions/",
+            headers=self.headers,
+        )
+        if response.ok:
+            return response.json()
+        print(self.username, "listing alter permissions", response.json())
     def create_contact(self, name, phone, phonebook):
         response = requests.post(
             f"{BASE_URL}/phonebooks/{phonebook}/contacts/",
@@ -131,16 +182,22 @@ class Client:
 
 client1 = Client(TEST_USERNAME1, TEST_PASS1)
 client2 = Client(TEST_USERNAME2, TEST_PASS1)
-phonebook1=client2.create_phonebook("new phonebook")
-client1.create_column("ability", 1)
+phonebook1=client1.create_phonebook("new phonebook")
+print(client1.list_permissions(phonebook1["pk"]))
+print(client2.list_phonebooks())
+client1.add_read_permission(phonebook1["pk"], client2.user["pk"])
+print(client1.username,'listing permissions',client1.list_permissions(phonebook1['pk']))
+print(client2.list_permissions(phonebook1["pk"]))
+
+print(client2.list_phonebooks())
+client1.create_column("ability", phonebook1['pk']) # type: ignore
 client1.create_contact("kevin", "0712344567", phonebook1["pk"])
 client1.create_attribute(1, 1, 100)
 client1.list_contacts()
-
 client2.create_contact("eliud", "0732344567", phonebook1["pk"])
-client1.add_read_permission(phonebook1["pk"], client2.user["pk"])
+client1.add_write_permission(phonebook1["pk"], client2.user["pk"])
+client2.create_contact("eliud", "0732344567", phonebook1["pk"])
 client2.create_note("Meeting", "attending a meeting at noon @contacts/0732344567")
-phonebook2=client2.create_phonebook("phonebook2")
 client2.create_column("ability", 1)
 client2.create_attribute(1, 1, 100)
 client2.list_contacts()

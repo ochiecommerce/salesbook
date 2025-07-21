@@ -8,19 +8,35 @@ User = get_user_model()
 
 class UsernameCheckView(APIView):
     def get(self, request):
-        username = request.query_params.get('username', '').strip()
+        username = request.query_params.get('username')
+        id = request.query_params.get('id')
 
         # Basic validation rules (you can customize)
-        if not username.isalnum() or len(username) < 3:
-            return Response(
-                {"valid": False, "error": "Username must be at least 3 characters and alphanumeric."},
-            )
+        if username:
+            username = username.strip()
+            if not username.isalnum() or len(username) < 3:
+                return Response(
+                    {"valid": False, "error": "Username must be at least 3 characters and alphanumeric."},
+                )
 
-        # Check availability
-        if User.objects.filter(username=username).exists():
-            return Response({"valid": False, "error": "Username is already taken."})
+            # Check availability
+            if User.objects.filter(username=username).exists():
+                user = User.objects.get(username=username)
+                return Response({"valid": False, "error": "Username is already taken.",'id':user.pk})
+            
+            return Response({"valid": True})
         
-        return Response({"valid": True})
+        if id:
+            id = id.strip()
+            try:
+                id = int(id)
+                if User.objects.filter(pk=id).exists():
+                    user = User.objects.get(pk=id)
+                    return Response({'valid':False,'error':'id already taken.','username':user.username})
+                return Response({'valid':True})
+            except Exception as e:
+                print(e)
+                return Response({'error':'id must be integer'})
 
 
 class UserSearchView(APIView):

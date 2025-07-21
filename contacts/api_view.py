@@ -1,15 +1,26 @@
-from rest_framework import viewsets, permissions,views
+# api_view.py
+from flask import request
+from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from django.http.request import HttpRequest
-
+from django.shortcuts import get_object_or_404
 from contacts.tagging import TagListener
 from .serializers import *
+
+User = get_user_model()
+
+from .permissions import HasAlterPermissionOrOwner, HasReadPermission, HasWritePermission
 
 note_tag_listener = TagListener('notes')
 
 class PhonebookViewSet(viewsets.ModelViewSet):
     serializer_class = PhonebookSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated(), HasAlterPermissionOrOwner()]
+        return [permissions.IsAuthenticated(), HasReadPermission()]
 
     def get_queryset(self):
         return Phonebook.objects.filter(read_permissions__user=self.request.user).all()
@@ -19,12 +30,7 @@ class PhonebookViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         # Customize the create process here
-        phonebook = serializer.save()
-
-        # Set any additional attributes on the model instance if needed
-        # For example, let's set a custom field 'created_by' with request.user
-        phonebook.creator = request.user
-        phonebook.save()
+        phonebook = serializer.save(creator = request.user)
         read_permission = ReadPermission(user=request.user,phonebook=phonebook)
         read_permission.save()
         write_permission = WritePermission(user=request.user,phonebook=phonebook)
@@ -39,15 +45,21 @@ class PhonebookViewSet(viewsets.ModelViewSet):
 class ContactsViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasReadPermission]
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated(), HasWritePermission()]
+        return [permissions.IsAuthenticated(), HasReadPermission()]
+    
+    def get_queryset(self):
+        return Contact.objects.filter(phonebook__read_permissions__user=self.request.user).all()
 
     def create(self, request,phonebook_id, *args, **kwargs):
         contact_serializer = ContactSerializer(data=request.data)
-        phonebook = Phonebook.objects.get(pk=phonebook_id)
-        permission = phonebook.write_permissions.filter(user=request.user).first()
-        if not permission:
-            return Response({'details':'permission denied'},403)
+        
         if contact_serializer.is_valid(raise_exception=True):
+            phonebook = get_object_or_404(Phonebook,pk=phonebook_id)
             contact=contact_serializer.save(phonebook=phonebook)
             return Response(ContactSerializer(contact).data)
         
@@ -82,83 +94,100 @@ class ContactsViewSet(viewsets.ModelViewSet):
 class ColumnViewSet(viewsets.ModelViewSet):
     queryset=Column.objects.all()
     serializer_class=ColumnSerializer
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes=[permissions.IsAuthenticated,HasAlterPermissionOrOwner]
+
+    def get_queryset(self):
+        return Column.objects.filter(phonebook__read_permissions__user=self.request.user).all()
+
+    def create(self, request, *args, **kwargs):
+        column_serializer = ColumnSerializer(data=request.data)
+        if column_serializer.is_valid(raise_exception=True):
+            column = column_serializer.save()
+            return Response(ColumnSerializer(column).data)
 
 
-class NoteViewSet(viewsets.ModelViewSet):
-    queryset=Note.objects.all()
-    serializer_class = NoteSerializer
+class NoteViewSet(viewsets.generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-
     def create(self, request:HttpRequest, *args, **kwargs):
-        note = NoteSerializer(data=request.data)
-
-        if note.is_valid(raise_exception=True):
-            note=note.save(user=request.user)
-            note_tag_listener.check(note.note,note.pk)
+        serializer = NoteSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            note = serializer.save(user=request.user)
             return Response(NoteSerializer(note).data)
+
+        
 
 class ReminderViewSet(viewsets.ModelViewSet):
     queryset = Reminder.objects.all()
     serializer_class = ReminderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        return Reminder.objects.filter(creator=self.request.user).all()
+
     def create(self, request, *args, **kwargs):
         reminder_serializer = ReminderSerializer(data=request.data)
+        reminder_serializer.is_valid(raise_exception=True)
         reminder = reminder_serializer.save(creator = request.user)
         return Response(ReminderSerializer(reminder).data)
-
+    
 class ReadPermissionViewSet(viewsets.ModelViewSet):
-    queryset=ReadPermission
+    queryset = ReadPermission.objects.all()
     serializer_class = ReadPermissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasAlterPermissionOrOwner]
 
-    def create(self, request, phonebook_id, *args, **kwargs):
-        read_permission_serializer = ReadPermissionSerializer(data=request.data)
-        if read_permission_serializer.is_valid(raise_exception=True):
-            read_permission = read_permission_serializer.save(phonebook=phonebook_id)
-            return Response(ReadPermissionSerializer(read_permission).data)
-        
-    def list(self, request, phonebook_id):
-        phonebook = Phonebook.objects.get(pk=phonebook_id)
-        read_permissions = phonebook.read_permissions.all()
-        return Response(ReadPermissionSerializer(read_permissions, many=True).data)
+    def get_queryset(self):
+        phonebook_id = self.kwargs.get("phonebook_id")
+        return ReadPermission.objects.filter(phonebook__pk=phonebook_id)
+
+    def perform_create(self, serializer):
+        print('line1')
+        phonebook_id = self.kwargs.get("phonebook_id")
+        print('line2')
+        user = User.objects.get(pk=self.request.data.get('user'))
+        print('line3')
+        phonebook = get_object_or_404(Phonebook, pk=phonebook_id)
+        print('line4')
+        self.check_object_permissions(self.request, phonebook)  # Ensure they can manage perms
+        print('line5')
+        serializer.is_valid(raise_exception=True)
+        print('line6')
+        serializer.save(phonebook=phonebook,user=user)
 
 
 class WritePermissionViewSet(viewsets.ModelViewSet):
-    queryset = WritePermission
+    queryset = WritePermission.objects.all()
     serializer_class = WritePermissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasAlterPermissionOrOwner]
 
-    def create(self, request, phonebook_id, *args, **kwargs):
-        write_permission_serializer = WritePermissionSerializer(data=request.data)
-        if write_permission_serializer.is_valid(raise_exception=True):
-            write_permission = write_permission_serializer.save(phonebook=phonebook_id)
-            return Response(WritePermissionSerializer(write_permission).data)
-        
-    def list(self, request, phonebook_id):
-        phonebook = Phonebook.objects.get(pk=phonebook_id)
-        write_permissions = phonebook.write_permissions.all()
-        return Response(WritePermissionSerializer(write_permissions, many=True).data)
+    def get_queryset(self):
+        phonebook_id = self.kwargs.get("phonebook_id")
+        return WritePermission.objects.filter(phonebook__pk=phonebook_id)
+
+    def perform_create(self, serializer):
+        phonebook_id = self.kwargs.get("phonebook_id")
+        phonebook = get_object_or_404(Phonebook, pk=phonebook_id)
+        self.check_object_permissions(self.request, phonebook)
+        serializer.save(phonebook=phonebook)
+
 
 class AlterPermissionViewSet(viewsets.ModelViewSet):
-    queryset = AlterPermission
+    queryset = AlterPermission.objects.all()
     serializer_class = AlterPermissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasAlterPermissionOrOwner]
 
-    def create(self, request, phonebook_id, *args, **kwargs):
-        alter_permission_serializer = AlterPermissionSerializer(data=request.data)
-        if alter_permission_serializer.is_valid(raise_exception=True):
-            alter_permission = alter_permission_serializer.save(phonebook=phonebook_id)
-            return Response(AlterPermissionSerializer(alter_permission).data)
-        
-    def list(self, request, phonebook_id):
-        phonebook = Phonebook.objects.get(pk=phonebook_id)
-        alter_permissions = phonebook.alter_permissions.all()
-        return Response(AlterPermissionSerializer(alter_permissions, many=True).data)
+    def get_queryset(self):
+        phonebook_id = self.kwargs.get("phonebook_id")
+        return AlterPermission.objects.filter(phonebook__pk=phonebook_id)
+
+    def perform_create(self, serializer):
+        phonebook_id = self.kwargs.get("phonebook_id")
+        phonebook = get_object_or_404(Phonebook, pk=phonebook_id)
+        self.check_object_permissions(self.request, phonebook)
+        serializer.save(phonebook=phonebook)
+
 
 class AttributeViewSet(viewsets.ModelViewSet):
-    queryset=Attribute
+    queryset=Attribute.objects.all()
     serializer_class = AttributeSerializer
     permission_classes = [permissions.IsAuthenticated]
 

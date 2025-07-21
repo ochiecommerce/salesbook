@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.static import serve
 
+from crm.views import index
+
 def serve_static(request,path_name):
     print('serving', path_name)
     return serve(request, 'static/'+path_name)
@@ -27,4 +29,5 @@ urlpatterns = [
     path('static/<path:path_name>',serve_static),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/', include('contacts.urls')),
+    path('',index,name='index'),
 ]
