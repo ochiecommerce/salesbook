@@ -1,7 +1,7 @@
-django
-django-cors-headers
-djangorestframework
-dj-rest-auth
-django-allauth
-django-allauth[socialaccount]
-gunicorn
+Django==4.2.15
+django-cors-headers==4.4.0
+djangorestframework==3.15.2
+dj-rest-auth==7.0.1
+django-allauth==0.58.2
+django-allauth[socialaccount]==0.58.2
+gunicorn==23.0.0
