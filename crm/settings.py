@@ -158,7 +158,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Use console 
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React app running on localhost
-    "https://salebook-react.onrender.com",  # Production URL
+    "https://salesbook-react.onrender.com",  # Production URL
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent with CORS requests
