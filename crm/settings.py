@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+from pyparsing import C
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -26,7 +28,10 @@ SECRET_KEY = 'django-insecure-uyz6g&d==rp6g=6+mr$*vihmaudquqv51+2a4hfb79u4am&224
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '*',     # LAN service
+    'localhost',
+    'localhost:3000',
+    'localhost:8000',
+    'salebook-react.onrender.com',  # Add your production URL here
 ]
 
 
@@ -158,3 +163,5 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React app running on localhost
     "https://salebook-react.onrender.com",  # Production URL
 ]
+
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent with CORS requests
