@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',  # Optional (for registration)
     'allauth',
     'allauth.account',
+    'corsheaders',  # For handling CORS
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     #'crm.middlewares.delay_request',
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -148,3 +150,10 @@ SITE_ID = 1
 
 # Email settings (for email verification and password reset)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Use console for testing
+
+# CORS settings
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React app running on localhost
+    "https://salebook-react.onrender.com",  # Production URL
+]
