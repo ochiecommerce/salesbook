@@ -8,7 +8,7 @@ from .serializers import *
 
 User = get_user_model()
 
-from .permissions import HasAlterPermissionOrOwner, HasReadPermission, HasWritePermission
+from .permissions import HasAlterPermission, HasAlterPermissionOrOwner, HasReadPermission, HasWritePermission
 
 note_tag_listener = TagListener('notes')
 
@@ -93,7 +93,7 @@ class ContactsViewSet(viewsets.ModelViewSet):
 class ColumnViewSet(viewsets.ModelViewSet):
     queryset=Column.objects.all()
     serializer_class=ColumnSerializer
-    permission_classes=[permissions.IsAuthenticated,HasAlterPermissionOrOwner]
+    permission_classes=[permissions.IsAuthenticated,HasAlterPermission]
 
     def get_queryset(self):
         return Column.objects.filter(phonebook__read_permissions__user=self.request.user).all()
