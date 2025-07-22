@@ -27,9 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
-    'localhost:3000',
     'localhost:8000',
-    'salebook-react.onrender.com',  # Add your production URL here
+    'salebook.onrender.com',  # Add your production URL here
 ]
 
 
