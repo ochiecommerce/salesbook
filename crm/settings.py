@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',  # Optional (for registration)
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',  # Optional (for social accounts)
     'corsheaders',  # For handling CORS
     'django.contrib.admin',
     'django.contrib.auth',
