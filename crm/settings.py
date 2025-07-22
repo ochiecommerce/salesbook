@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     'localhost:8000',
-    'salebook.onrender.com',  # Add your production URL here
+    'salesbook.onrender.com',  # Add your production URL here
 ]
 
 
