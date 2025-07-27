@@ -51,6 +51,5 @@ urlpatterns = [
         name="alter_permission",
     ),
     path('notes/',NoteViewSet.as_view(),name='create_note'),
-    path("user/check/", UsernameCheckView.as_view(), name="username_check"),
-    path("user/search/", UserSearchView.as_view(), name="user_search"),
+    
 ]

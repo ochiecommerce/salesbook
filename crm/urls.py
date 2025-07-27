@@ -18,14 +18,24 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.static import serve
 
+from market.views import product_list_template
+import orders
+
 
 def serve_static(request,path_name):
     print('serving', path_name)
     return serve(request, 'static/'+path_name)
 
 urlpatterns = [
+    path('',product_list_template,name='catalog'),
     path('admin/', admin.site.urls),
     path('static/<path:path_name>',serve_static),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/', include('contacts.urls')),
+    path('api/market/',include('market.urls')),
+    path('api/user/',include('user.urls')),
+    path('api/order/',include('orders.urls')),
+    path('api/reviews/',include('reviews.urls')),
+    path('api/cart/',include('cart.urls')),
+    path('api/forum/',include('forum.urls'))
 ]

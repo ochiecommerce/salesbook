@@ -36,6 +36,11 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'contacts',
+    'market',
+    'orders',
+    'cart',
+    'reviews',
+    'forum',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',

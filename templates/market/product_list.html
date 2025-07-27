@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products - My Shop{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- SEO: Page Heading -->
+    <header class="mb-4">
+        <h1 class="text-center">Browse Our Products</h1>
+        <p class="text-center text-muted">Find the perfect product for you.</p>
+    </header>
+
+    <!-- Search Form -->
+    <form method="get" class="mb-4 d-flex justify-content-center">
+        <input type="text" name="q" class="form-control w-50 me-2"
+               placeholder="Search products..." value="{{ request.GET.q }}">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- Product Grid -->
+    {% if products %}
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for product in products %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="{% static 'images/default-product.png' %}" class="card-img-top" alt="No image available">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'product_detail' product.id %}" class="text-decoration-none">
+                                    {{ product.name }}
+                                </a>
+                            </h5>
+                            <p class="card-text text-truncate">{{ product.description|truncatewords:15 }}</p>
+                            <p class="fw-bold text-success">${{ product.price }}</p>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.previous_page_number }}&q={{ request.GET.q }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                    {% if products.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}&q={{ request.GET.q }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.next_page_number }}&q={{ request.GET.q }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+    {% else %}
+        <p class="text-center mt-5">No products found.</p>
+    {% endif %}
+</div>
+{% endblock %}
