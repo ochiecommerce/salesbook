@@ -1,10 +1,11 @@
 # api_view.py
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from django.http.request import HttpRequest
 from django.shortcuts import get_object_or_404
 from contacts.tagging import TagListener
-from .serializers import *
+from contacts.serializers import *
 
 User = get_user_model()
 
@@ -44,6 +45,7 @@ class PhonebookViewSet(viewsets.ModelViewSet):
 class ContactsViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
+    filter_backends = [DjangoFilterBackend]
     permission_classes = [permissions.IsAuthenticated, HasReadPermission]
 
     def get_permissions(self):
