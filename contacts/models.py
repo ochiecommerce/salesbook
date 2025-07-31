@@ -91,7 +91,9 @@ class Column(models.Model):
     phonebook = models.ForeignKey(
         Phonebook, related_name="columns", on_delete=models.CASCADE
     )
-    data_type = models.CharField(choices=(("number", "Number"), ("str", "String")))
+    data_type = models.CharField(
+        choices=(("number", "Number"), ("str", "String")), max_length=16
+    )
 
     class Meta:
         unique_together = ("name", "phonebook")
