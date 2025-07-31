@@ -1,3 +1,4 @@
+from pyparsing import col
 from rest_framework.test import APIClient, APITestCase
 
 
@@ -25,18 +26,41 @@ class PhonebookTest(APITestCase):
             data={"name": "phonebook1", "description": "my first phonebook"},
             headers=self.client.headers,
         )
-        assert 'name' in response.json().keys()
+        phonebook: dict = response.json()
+        assert "name" in phonebook.keys()
+        return phonebook
 
     def test_create_contact(self):
-        response = self.client.post(
-            "/api/phonebooks/",
-            data={"name": "phonebook1", "description": "my first phonebook"},
-            headers=self.client.headers,
-        )
-        phonebook=response.json()
+        phonebook = self.test_create_phonebook()
         response = self.client.post(
             f"/api/phonebooks/{phonebook['pk']}/contacts/",
-            data={"name":'kevin otieno','phone':'0771234567'},
+            data={"name": "kevin otieno", "phone": "0771234567"},
             headers=self.client.headers,
         )
-        assert 'name' in response.json().keys()
+        contact: dict = response.json()
+        assert "name" in contact.keys()
+        return contact
+
+    def test_list_phonebooks(self):
+        self.test_create_phonebook()
+        response = self.client.get("/api/phonebooks/", headers=self.client.headers)
+        phonebooks: list = response.json()
+        assert len(phonebooks) > 0
+        return phonebooks
+
+    def test_create_column(self):
+        phonebook = self.test_create_phonebook()
+        response = self.client.post(
+            "/api/columns/",
+            data={"name": "column1", "phonebook": phonebook["pk"]},
+            headers=self.client.headers,
+        )
+        column: dict = response.json()
+        assert "name" in column.keys()
+        return column
+
+    def test_list_contacts(self):
+        phonebook = self.test_create_phonebook()
+        self.test_create_column()
+        self.test_create_contact()
+        response = self.client.get("/api/phonebooks")
