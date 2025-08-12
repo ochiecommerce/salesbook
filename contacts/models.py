@@ -87,16 +87,18 @@ class Tag(models.Model):
 
 class Column(models.Model):
 
-    name = models.CharField(max_length=255)
+    field = models.CharField(max_length=255)
     phonebook = models.ForeignKey(
         Phonebook, related_name="columns", on_delete=models.CASCADE
     )
-    data_type = models.CharField(
-        choices=(("number", "Number"), ("str", "String")), max_length=16
+    type = models.CharField(
+        choices=(("number", "Number"), ("string", "String")),
+        max_length=16,
+        default="string",
     )
 
     class Meta:
-        unique_together = ("name", "phonebook")
+        unique_together = ("field", "phonebook")
 
 
 class Attribute(models.Model):

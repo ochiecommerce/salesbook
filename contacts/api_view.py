@@ -43,12 +43,15 @@ class PhonebookViewSet(viewsets.ModelViewSet):
         write_permission.save()
         alter_permission = AlterPermission(user=request.user, phonebook=phonebook)
         alter_permission.save()
+        column = Column(field="name", phonebook=phonebook, type="string")
+        column.save()
+        column = Column(field="phone", phonebook=phonebook, type="string")
+        column.save()
 
         return Response(serializer.data)
 
 
 class ContactsViewSet(viewsets.ModelViewSet):
-    queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     filter_backends = [DjangoFilterBackend]
     permission_classes = [permissions.IsAuthenticated, HasReadPermission]
@@ -72,8 +75,9 @@ class ContactsViewSet(viewsets.ModelViewSet):
             contact = contact_serializer.save(phonebook=phonebook)
             return Response(ContactSerializer(contact).data)
 
-    def list(self, request):
-        phonebook_id = request.data.get("phonebook")
+    def list(self, request: HttpRequest):
+        phonebook_id = request.GET.get("phonebook")
+        print("phonebook id", phonebook_id)
         phonebook = get_object_or_404(Phonebook, pk=phonebook_id)
         contacts = self.get_queryset().filter(phonebook=phonebook)
         columns_serializer = ColumnSerializer(phonebook.columns.all(), many=True)
@@ -85,7 +89,7 @@ class ContactsViewSet(viewsets.ModelViewSet):
             attributes = Attribute.objects.filter(column__phonebook=contact.phonebook)
             row: dict = contact_serializer.data
             for attribute in attributes:
-                row[attribute.column.name] = attribute.value
+                row[attribute.column.field] = attribute.value
             data["data"].append(row)
 
         return Response(data)

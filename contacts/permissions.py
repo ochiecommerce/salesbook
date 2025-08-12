@@ -10,7 +10,6 @@ class HasReadPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # `obj` can be Phonebook or Contact (which has phonebook)
-        print(obj, request.data)
         phonebook = obj if isinstance(obj, Phonebook) else obj.phonebook
         return (
             phonebook.read_permissions.filter(user=request.user).exists()

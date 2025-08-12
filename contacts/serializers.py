@@ -32,32 +32,28 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ["tagger_app", "tagger_id", "tagged_app", "tagged_id"]
 
+
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = [
-            "contact",
-            "note",
-            "user",
-            "timestamp"
-        ]
-
-
+        fields = ["contact", "note", "user", "timestamp"]
 
 
 class ContactSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
-    notes = NoteSerializer(many=True,required=False)
+    notes = NoteSerializer(many=True, required=False)
+
     class Meta:
         model = Contact
-        fields = ["name", "phone", "phonebook", "pk", "tags",'notes']
+        fields = ["name", "phone", "phonebook", "pk", "tags", "notes"]
         read_only_fields = ["created_at", "updated_at"]
 
 
 class ColumnSerializer(serializers.ModelSerializer):
     class Meta:
         model = Column
-        fields = ["name", "phonebook"]
+        fields = ["field", "phonebook", "type", "pk"]
+        read_only_fields = ["pk"]
 
 
 class ReadPermissionSerializer(serializers.ModelSerializer):
@@ -78,7 +74,15 @@ class PhonebookSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Phonebook
-        fields = ["name", "description", "creator", "pk", "contact_count", "columns","read_permissions"]
+        fields = [
+            "name",
+            "description",
+            "creator",
+            "pk",
+            "contact_count",
+            "columns",
+            "read_permissions",
+        ]
 
 
 class WritePermissionSerializer(serializers.ModelSerializer):
