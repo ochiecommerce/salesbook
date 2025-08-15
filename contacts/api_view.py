@@ -3,11 +3,36 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from django.http.request import HttpRequest
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from contacts.tagging import TagListener
-from contacts.serializers import *
-
-User = get_user_model()
+from django.core.mail import send_mass_mail
+from contacts.models import (
+    AlterPermission,
+    Attribute,
+    Column,
+    Contact,
+    Label,
+    Labelling,
+    Phonebook,
+    ReadPermission,
+    Reminder,
+    WritePermission,
+)
+from contacts.serializers import (
+    AlterPermissionSerializer,
+    ContactSerializer,
+    LabelSerializer,
+    LabellingSerializer,
+    NoteSerializer,
+    PhonebookSerializer,
+    ReadPermissionSerializer,
+    ReminderSerializer,
+    WritePermissionSerializer,
+    AttributeSerializer,
+    ColumnSerializer,
+)
+from .tagging import TagListener
+from core.viewsets import WithUserAsCreator
 
 from .permissions import (
     HasAlterPermission,
@@ -17,6 +42,7 @@ from .permissions import (
 )
 
 note_tag_listener = TagListener("notes")
+User = get_user_model()
 
 
 class PhonebookViewSet(viewsets.ModelViewSet):
@@ -51,6 +77,14 @@ class PhonebookViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class LabelViewSet(WithUserAsCreator):
+    queryset = Label.objects.all()
+    serializer_class = LabelSerializer
+    permission_classes = [permissions.IsAuthenticated, HasReadPermission]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["phonebook"]
+
+
 class ContactsViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
     filter_backends = [DjangoFilterBackend]
@@ -77,7 +111,6 @@ class ContactsViewSet(viewsets.ModelViewSet):
 
     def list(self, request: HttpRequest):
         phonebook_id = request.GET.get("phonebook")
-        print("phonebook id", phonebook_id)
         phonebook = get_object_or_404(Phonebook, pk=phonebook_id)
         contacts = self.get_queryset().filter(phonebook=phonebook)
         columns_serializer = ColumnSerializer(phonebook.columns.all(), many=True)
@@ -104,6 +137,12 @@ class ContactsViewSet(viewsets.ModelViewSet):
         return Response(contact_serializer.data)
 
 
+class LabellingViewSet(WithUserAsCreator):
+    queryset = Labelling.objects.all()
+    serializer_class = LabellingSerializer
+    permission_classes = [permissions.IsAuthenticated, HasReadPermission]
+
+
 class ColumnViewSet(viewsets.ModelViewSet):
     queryset = Column.objects.all()
     serializer_class = ColumnSerializer
@@ -119,6 +158,9 @@ class ColumnViewSet(viewsets.ModelViewSet):
         if column_serializer.is_valid(raise_exception=True):
             column = column_serializer.save()
             return Response(ColumnSerializer(column).data)
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 class NoteViewSet(viewsets.generics.CreateAPIView):
@@ -156,7 +198,7 @@ class ReadPermissionViewSet(viewsets.ModelViewSet):
         return ReadPermission.objects.filter(phonebook__pk=phonebook_id)
 
     def perform_create(self, serializer):
-        phonebook_id = self.kwargs.get("phonebook_id")
+        phonebook_id = self.request.data.get("phonebook_id")
         user = User.objects.get(pk=self.request.data.get("user"))
         phonebook = get_object_or_404(Phonebook, pk=phonebook_id)
         self.check_object_permissions(

@@ -2,6 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .api_view import (
     ContactsViewSet,
+    LabelViewSet,
+    LabellingViewSet,
     PhonebookViewSet,
     ColumnViewSet,
     AttributeViewSet,
@@ -21,6 +23,8 @@ router.register(r"read_permissions", ReadPermissionViewSet, basename="read_permi
 router.register(
     r"write_permissions", WritePermissionViewSet, basename="write_permission"
 )
+router.register(r"labels", LabelViewSet, basename="label")
+router.register(r"labellings", LabellingViewSet, basename="labelling")
 router.register(
     r"alter_permissions", AlterPermissionViewSet, basename="alter_permission"
 )

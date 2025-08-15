@@ -85,6 +85,25 @@ class Tag(models.Model):
     tagged_id = models.CharField(max_length=63)
 
 
+class Label(models.Model):
+    phonebook = models.ForeignKey(
+        Phonebook, on_delete=models.CASCADE, related_name="labels"
+    )
+    name = models.CharField(max_length=65)
+    color = models.CharField(max_length=65)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Labelling(models.Model):
+    label = models.ForeignKey(
+        Label, on_delete=models.CASCADE, related_name="labellings"
+    )
+    contact = models.ForeignKey(
+        Contact, on_delete=models.CASCADE, related_name="labels"
+    )
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
 class Column(models.Model):
 
     field = models.CharField(max_length=255)

@@ -50,8 +50,7 @@ class HasAlterPermissionOrOwner(permissions.BasePermission):
 
     def has_permission(self, request, view):
         # Need phonebook_id in URL (for list/create)
-        print("request args", view.kwargs)
-        phonebook_id = view.kwargs.get("phonebook_id")
+        phonebook_id = request.data.get("phonebook_id")
         if not phonebook_id:
             return False
         try:
