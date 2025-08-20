@@ -171,6 +171,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost",
     "http://localhost:3000",  # React app running on localhost
     "https://salesbook-react.onrender.com",  # Production URL
+    "https://business-phonebook.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent with CORS requests
